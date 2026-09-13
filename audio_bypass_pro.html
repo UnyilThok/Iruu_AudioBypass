@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AudioBypass Pro — Iruu</title>
+<style>
+:root{
+  --bg:#080a0d;
+  --surface:#101318;
+  --surface2:#181c24;
+  --surface3:#1e2330;
+  --border:#1e2330;
+  --border2:#2d3445;
+  --text:#e8ecf4;
+  --muted:#5a6580;
+  --accent:#7c6dfa;
+  --accent2:#a89ff8;
+  --green:#28d890;
+  --red:#ff4f5a;
+  --yellow:#f5a623;
+  --cyan:#00d4e0;
+  --orange:#ff8c42;
+  --radius:10px;
+  --shadow:0 2px 16px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  min-height:100vh;padding-bottom:5.5rem;
+}
+
+/* NAV */
+nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.875rem 1.5rem;border-bottom:1px solid var(--border);
+  background:rgba(8,10,13,.9);position:sticky;top:0;z-index:100;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;text-decoration:none;color:var(--text)}
+.logo-icon{
+  width:30px;height:30px;
+  background:linear-gradient(135deg,#7c6dfa,#a89ff8);
+  border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;
+  box-shadow:0 0 12px rgba(124,109,250,.35);
+}
+.logo-dev{font-size:11px;color:var(--muted);font-weight:500;margin-left:2px}
+.badge{
+  font-size:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;padding:2px 9px;border-radius:20px;font-weight:700;letter-spacing:.03em;
+}
+.nav-right{display:flex;align-items:center;gap:8px}
+
+/* MAIN */
+.container{max-width:700px;margin:0 auto;padding:2rem 1.25rem}
+.section-title{
+  font-size:11px;font-weight:600;color:var(--muted);
+  letter-spacing:.08em;text-transform:uppercase;margin-bottom:.75rem;
+}
+
+/* TABS */
+.tabs{
+  display:flex;gap:4px;background:var(--surface2);
+  border-radius:var(--radius);padding:4px;margin-bottom:1.5rem;
+}
+.tab{
+  flex:1;padding:8px;border:none;background:transparent;
+  color:var(--muted);font-size:13px;font-weight:500;border-radius:7px;
+  cursor:pointer;transition:.15s;
+}
+.tab.active{background:var(--surface3);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.tab:hover:not(.active){color:var(--text)}
+
+/* PANELS */
+.panel{display:none}
+.panel.active{display:block}
+
+/* DROP ZONE */
+.drop-zone{
+  border:1.5px dashed var(--border2);border-radius:var(--radius);
+  padding:2.25rem 1rem;text-align:center;cursor:pointer;transition:.2s;
+  background:var(--surface);position:relative;
+}
+.drop-zone:hover,.drop-zone.drag{
+  border-color:var(--accent);background:rgba(124,109,250,.07);
+}
+.drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop-icon{font-size:40px;margin-bottom:.5rem}
+.drop-text{font-size:14px;color:var(--text);font-weight:500;margin-bottom:4px}
+.drop-sub{font-size:12px;color:var(--muted)}
+
+/* QUEUE HEADER */
+.queue-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:1rem;margin-bottom:.5rem;
+}
+.queue-count{font-size:12px;color:var(--muted)}
+.clear-all-btn{
+  background:transparent;border:1px solid var(--border2);
+  color:var(--muted);font-size:11px;padding:3px 10px;border-radius:6px;
+  cursor:pointer;transition:.15s;
+}
+.clear-all-btn:hover{border-color:var(--red);color:var(--red)}
+
+/* QUEUE */
+.queue{display:flex;flex-direction:column;gap:6px}
+.queue-item{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius);padding:.75rem 1rem;
+  display:flex;align-items:center;gap:10px;transition:border-color .2s;
+}
+.queue-item.done{border-color:rgba(40,216,144,.25)}
+.queue-item.err{border-color:rgba(255,79,90,.25)}
+.queue-item.loading{border-color:rgba(124,109,250,.25)}
+.qi-icon{font-size:20px;flex-shrink:0}
+.qi-info{flex:1;min-width:0}
+.qi-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qi-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.qi-status{font-size:11px;font-weight:600;flex-shrink:0;text-align:right;min-width:64px}
+.qi-rm{
+  background:transparent;border:none;color:var(--muted);
+  cursor:pointer;font-size:16px;flex-shrink:0;padding:0 2px;line-height:1;transition:.15s;
+}
+.qi-rm:hover{color:var(--red)}
+.qi-bar{height:2px;background:var(--border);border-radius:2px;margin-top:6px;overflow:hidden}
+.qi-prog{
+  height:2px;border-radius:2px;width:0%;transition:width .3s;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+}
+
+/* LINK BOX */
+.link-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.link-row{display:flex;align-items:center}
+.link-prefix{padding:.75rem 1rem;font-size:18px;border-right:1px solid var(--border);flex-shrink:0}
+.link-input{
+  flex:1;background:transparent;border:none;color:var(--text);
+  font-size:13px;padding:.75rem;outline:none;
+}
+.link-input::placeholder{color:var(--muted)}
+.link-add{
+  padding:.75rem 1rem;background:var(--accent);border:none;color:#fff;
+  font-size:13px;font-weight:600;cursor:pointer;transition:.15s;white-space:nowrap;flex-shrink:0;
+}
+.link-add:hover{background:var(--accent2)}
+.link-hint{
+  padding:.5rem 1rem;border-top:1px solid var(--border);
+  font-size:11px;color:var(--muted);display:flex;gap:.4rem;flex-wrap:wrap;
+}
+.link-hint span{background:var(--surface2);padding:2px 7px;border-radius:20px}
+
+/* NOTICE */
+.notice{
+  background:var(--surface2);border:1px solid var(--border);
+  border-left:3px solid var(--yellow);border-radius:var(--radius);
+  padding:.75rem 1rem;font-size:12px;color:var(--muted);
+  line-height:1.65;margin-top:.75rem;
+}
+.notice strong{color:var(--yellow)}
+.notice a{color:var(--accent2);text-decoration:none}
+.notice a:hover{text-decoration:underline}
+
+/* SETTINGS CARD */
+.settings-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:1.25rem;margin-bottom:.75rem;
+}
+.setting-label{
+  font-size:12px;font-weight:700;color:var(--muted);margin-bottom:.75rem;
+  display:flex;align-items:center;gap:6px;text-transform:uppercase;letter-spacing:.07em;
+}
+
+/* TECHNIQUE GRID */
+.tech-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tech-opt{
+  border:1px solid var(--border);border-radius:8px;padding:.65rem .85rem;
+  font-size:12px;color:var(--muted);cursor:pointer;transition:.15s;
+  background:transparent;text-align:left;
+}
+.tech-opt:hover{border-color:var(--border2);color:var(--text)}
+.tech-opt.sel{border-color:var(--accent);background:rgba(124,109,250,.1);color:var(--accent2)}
+.t-name{font-weight:600;display:block;margin-bottom:2px;font-size:13px}
+.t-desc{font-size:10px;opacity:.7;line-height:1.4}
+
+/* OPT PANELS */
+.opt-panel{margin-top:.875rem}
+.slider-row{display:flex;align-items:center;gap:10px;margin-bottom:.25rem}
+.slider-label{font-size:12px;color:var(--muted);min-width:110px}
+.slider-row input[type=range]{flex:1;accent-color:var(--accent);cursor:pointer}
+.slider-val{font-size:13px;font-weight:600;min-width:52px;text-align:right;color:var(--accent2)}
+.opt-desc{
+  font-size:12px;color:var(--muted);line-height:1.55;
+  padding:.5rem .75rem;background:var(--surface2);border-radius:7px;margin-top:.5rem;
+}
+
+/* SELECT */
+.styled-select{
+  background:var(--surface2);border:1px solid var(--border);border-radius:7px;
+  color:var(--text);font-size:13px;padding:.5rem .75rem;width:100%;outline:none;
+  cursor:pointer;transition:.15s;
+}
+.styled-select:focus{border-color:var(--accent)}
+
+/* TOGGLE ROW */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;font-size:13px;padding:.3rem 0}
+.toggle-row .tl{color:var(--text);font-size:13px}
+.toggle-row .ts{color:var(--muted);font-size:11px;margin-left:6px}
+.toggle{position:relative;width:36px;height:20px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;background:var(--surface3);border-radius:20px;cursor:pointer;transition:.2s}
+.toggle-slider:before{
+  content:'';position:absolute;width:14px;height:14px;
+  left:3px;top:3px;background:var(--muted);border-radius:50%;transition:.2s;
+}
+.toggle input:checked+.toggle-slider{background:var(--accent)}
+.toggle input:checked+.toggle-slider:before{transform:translateX(16px);background:#fff}
+
+/* COMBO OPTS */
+.combo-opts{display:flex;flex-direction:column;gap:.5rem;margin-top:.75rem}
+.combo-row{background:var(--surface2);border-radius:8px;padding:.6rem .85rem}
+.combo-check-row{display:flex;align-items:center;gap:8px;margin-bottom:0}
+.combo-check-row input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px;cursor:pointer;flex-shrink:0}
+.combo-check-label{font-size:13px;font-weight:500;flex:1}
+.combo-sub{margin-top:.5rem;display:none}
+.combo-sub.show{display:block}
+
+/* BUTTONS */
+.run-btn{
+  width:100%;padding:13px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:.15s;margin-top:1rem;box-shadow:0 2px 16px rgba(124,109,250,.3);
+}
+.run-btn:hover:not(:disabled){filter:brightness(1.1);box-shadow:0 4px 20px rgba(124,109,250,.45)}
+.run-btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+.run-btn.running{animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.65}}
+.cancel-btn{
+  width:100%;padding:10px;background:transparent;color:var(--red);
+  border:1px solid var(--red);border-radius:var(--radius);font-size:13px;font-weight:600;
+  cursor:pointer;margin-top:.5rem;transition:.15s;display:none;
+}
+.cancel-btn:hover{background:rgba(255,79,90,.1)}
+.cancel-btn.show{display:block}
+
+/* RESULTS */
+.result-item{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:1rem;display:flex;align-items:center;
+  gap:12px;margin-bottom:.5rem;animation:fadeIn .2s ease;
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.ri-icon{font-size:22px;flex-shrink:0}
+.ri-info{flex:1;min-width:0}
+.ri-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ri-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.ri-wave{margin-top:6px}
+.ri-actions{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+.prev-btn{
+  background:var(--surface2);border:1px solid var(--border2);
+  color:var(--text);border-radius:7px;padding:6px 10px;font-size:13px;
+  cursor:pointer;transition:.15s;
+}
+.prev-btn:hover{border-color:var(--accent);color:var(--accent2)}
+.prev-btn.playing{background:rgba(124,109,250,.15);border-color:var(--accent);color:var(--accent2)}
+.dl-btn{
+  background:var(--accent);color:#fff;border:none;border-radius:7px;
+  padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;
+  text-decoration:none;white-space:nowrap;transition:.15s;display:inline-block;
+}
+.dl-btn:hover{background:var(--accent2)}
+.dl-all{
+  width:100%;padding:11px;background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);border-radius:var(--radius);font-size:13px;font-weight:600;
+  cursor:pointer;margin-bottom:.5rem;transition:.15s;
+}
+.dl-all:hover{border-color:var(--accent);color:var(--accent2)}
+.clear-results-btn{
+  width:100%;padding:9px;background:transparent;border:1px solid var(--border2);
+  color:var(--muted);border-radius:var(--radius);font-size:12px;font-weight:500;
+  cursor:pointer;margin-bottom:.75rem;transition:.15s;
+}
+.clear-results-btn:hover{border-color:var(--red);color:var(--red)}
+
+/* STATS */
+.stats-row{
+  display:flex;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap;
+}
+.stat-chip{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:20px;padding:3px 10px;font-size:11px;color:var(--muted);
+}
+.stat-chip strong{color:var(--text)}
+
+/* PROCESS TIME */
+.proc-time{
+  font-size:11px;color:var(--muted);text-align:center;
+  margin-top:.35rem;margin-bottom:.5rem;
+}
+
+/* ZIP OPTS */
+.zip-opts{display:flex;gap:6px;margin-bottom:.5rem}
+.zip-opt{
+  flex:1;padding:7px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:7px;font-size:11px;font-weight:600;color:var(--muted);
+  cursor:pointer;transition:.15s;text-align:center;
+}
+.zip-opt:hover{border-color:var(--border2);color:var(--text)}
+.zip-opt.sel{border-color:var(--accent);background:rgba(124,109,250,.1);color:var(--accent2)}
+
+/* STATUS BAR */
+.status-bar{
+  display:none;position:fixed;bottom:0;left:0;right:0;
+  background:var(--surface);border-top:1px solid var(--border);
+  padding:.75rem 1.5rem;align-items:center;gap:10px;font-size:12px;z-index:200;
+}
+.status-bar.show{display:flex}
+.sb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;transition:background .3s}
+.sb-dot.info{background:var(--accent)}
+.sb-dot.ok{background:var(--green)}
+.sb-dot.err{background:var(--red)}
+.sb-dot.warn{background:var(--yellow)}
+.sb-text{color:var(--muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-prog{width:120px;height:3px;background:var(--border);border-radius:2px;flex-shrink:0;overflow:hidden}
+.sb-fill{
+  height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));
+  border-radius:2px;width:0%;transition:width .3s;
+}
+.sb-pct{font-size:11px;color:var(--muted);min-width:32px;text-align:right}
+
+/* UTILS */
+.empty-q{text-align:center;padding:2rem;color:var(--muted);font-size:13px}
+.empty-q-icon{font-size:28px;margin-bottom:.4rem;opacity:.3}
+hr{border:none;border-top:1px solid var(--border);margin:1.5rem 0}
+.warn-msg{
+  background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.22);
+  border-radius:8px;padding:.6rem .9rem;font-size:12px;color:var(--yellow);
+  margin-top:.5rem;
+}
+.output-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:.75rem}
+.output-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;margin-top:.75rem}
+
+/* FOOTER */
+footer{
+  text-align:center;padding:1.5rem 1rem 2.5rem;
+  font-size:11px;color:var(--muted);border-top:1px solid var(--border);
+  margin-top:2rem;
+}
+footer strong{color:var(--accent2)}
+footer .version-tag{
+  display:inline-block;margin-top:.4rem;font-size:10px;
+  background:var(--surface2);border:1px solid var(--border2);
+  padding:2px 8px;border-radius:10px;color:var(--muted);
+}
+
+/* RESPONSIVE */
+@media(max-width:480px){
+  .tech-grid{grid-template-columns:1fr}
+  .output-row{grid-template-columns:1fr}
+  .output-row-3{grid-template-columns:1fr 1fr}
+  nav{padding:.75rem 1rem}
+  .container{padding:1.25rem .875rem}
+  .zip-opts{flex-direction:column}
+}
+
+/* WAVEFORM CANVAS */
+canvas.waveform{
+  width:100%;height:32px;border-radius:4px;
+  background:rgba(124,109,250,.05);display:block;margin-top:6px;
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="#">
+    <div class="logo-icon">🎵</div>
+    AudioBypass Pro
+    <span class="logo-dev">by Iruu Bypass</span>
+  </a>
+  <div class="nav-right">
+    <span class="badge">v5.0</span>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- SOURCE -->
+  <p class="section-title">Sumber Audio</p>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('file',this)">📁 Upload File</button>
+    <button class="tab" onclick="switchTab('link',this)">🔗 Dari Link</button>
+  </div>
+
+  <!-- FILE TAB -->
+  <div class="panel active" id="panel-file">
+    <div class="drop-zone" id="dropZone">
+      <input type="file" id="fileInput" accept="audio/*,video/mp4,video/webm,video/quicktime" multiple>
+      <div class="drop-icon">📂</div>
+      <p class="drop-text">Klik atau seret banyak file sekaligus</p>
+      <p class="drop-sub">MP3 · WAV · OGG · M4A · FLAC · AIFF · MP4 · WebM · AAC · OPUS</p>
+    </div>
+    <div id="queueHeaderWrap" style="display:none">
+      <div class="queue-header">
+        <span class="queue-count" id="queueCount">0 file</span>
+        <button class="clear-all-btn" onclick="clearAllFiles()">🗑 Hapus Semua</button>
+      </div>
+    </div>
+    <div class="queue" id="fileQueue"></div>
+    <div id="sizewarn"></div>
+  </div>
+
+  <!-- LINK TAB -->
+  <div class="panel" id="panel-link">
+    <div class="link-box">
+      <div class="link-row">
+        <span class="link-prefix">🔗</span>
+        <input class="link-input" id="linkInput" type="url" placeholder="Paste URL YouTube, TikTok, SoundCloud...">
+        <button class="link-add" onclick="addLink()">Tambah</button>
+      </div>
+      <div class="link-hint">
+        <span>youtube.com</span><span>youtu.be</span>
+        <span>tiktok.com</span><span>spotify.com</span>
+        <span>soundcloud.com</span><span>instagram.com</span>
+      </div>
+    </div>
+    <div class="notice">
+      <strong>⚠️ Cara kerja fitur Link</strong><br>
+      Browser tidak bisa langsung mengunduh audio dari Spotify, TikTok, atau YouTube karena perlindungan DRM. Tool ini menampilkan link yang bisa dibuka di downloader eksternal.<br><br>
+      <strong>Opsi gratis:</strong><br>
+      • <a href="https://cobalt.tools" target="_blank">cobalt.tools</a> — paste link → download → upload ke tab File<br>
+      • <a href="https://yt-dlp.github.io" target="_blank">yt-dlp</a> — command line, batch download lokal<br>
+      • <a href="https://snapsave.app" target="_blank">snapsave.app</a> — TikTok &amp; Instagram<br>
+    </div>
+    <div class="queue" id="linkQueue" style="margin-top:.75rem"></div>
+  </div>
+
+  <hr>
+
+  <!-- TECHNIQUE -->
+  <p class="section-title">Teknik Bypass</p>
+  <div class="settings-card">
+    <div class="setting-label"><span>🎛️</span> Mode Proses</div>
+    <div class="tech-grid">
+      <div class="tech-opt sel" data-v="pitch" onclick="selTech(this)">
+        <span class="t-name">🎼 Pitch Shift</span>
+        <span class="t-desc">Geser pitch ±semitone. Paling efektif bypass Content ID.</span>
+      </div>
+      <div class="tech-opt" data-v="speed" onclick="selTech(this)">
+        <span class="t-name">⏩ Speed Tweak</span>
+        <span class="t-desc">Ubah tempo sedikit. Hampir tidak terdeteksi telinga.</span>
+      </div>
+      <div class="tech-opt" data-v="noise" onclick="selTech(this)">
+        <span class="t-name">🌊 Noise Inject</span>
+        <span class="t-desc">Sisipkan white noise ultra-rendah ke audio fingerprint.</span>
+      </div>
+      <div class="tech-opt" data-v="reverb" onclick="selTech(this)">
+        <span class="t-name">🔮 Reverb Inject</span>
+        <span class="t-desc">Tambahkan reverb halus. Mengubah acoustic fingerprint.</span>
+      </div>
+      <div class="tech-opt" data-v="eq" onclick="selTech(this)">
+        <span class="t-name">📊 EQ Shift</span>
+        <span class="t-desc">Geser frekuensi tertentu ±dB. Bypass spectrum fingerprint.</span>
+      </div>
+      <div class="tech-opt" data-v="stereo" onclick="selTech(this)">
+        <span class="t-name">🔊 Stereo Imager</span>
+        <span class="t-desc">Ubah stereo width via M-S processing. Bypass baru.</span>
+      </div>
+      <div class="tech-opt" data-v="phase" onclick="selTech(this)">
+        <span class="t-name">🔁 Phase Flip <span style="font-size:9px;background:rgba(40,216,144,.15);color:var(--green);padding:1px 5px;border-radius:10px;font-weight:700">BARU</span></span>
+        <span class="t-desc">Inversi polarity channel. Bypass fingerprint tanpa perubahan suara yang terdengar.</span>
+      </div>
+      <div class="tech-opt" data-v="combo" onclick="selTech(this)">
+        <span class="t-name">⚡ Combo Max</span>
+        <span class="t-desc">Pilih kombinasi teknik sekaligus. Bypass terkuat — sulit dideteksi sistem manapun.</span>
+      </div>
+    </div>
+
+    <!-- Pitch options -->
+    <div class="opt-panel" id="opt-pitch">
+      <div class="slider-row">
+        <span class="slider-label">Semitone offset</span>
+        <input type="range" id="pitchVal" min="-6" max="6" step="1" value="2"
+          oninput="this.nextElementSibling.textContent=(this.value>0?'+':'')+this.value+' st'">
+        <span class="slider-val">+2 st</span>
+      </div>
+      <div class="opt-desc">Geser pitch tanpa mengubah kecepatan. +2 semitone untuk bypass YouTube, ±1 untuk platform lain. Nilai 0 tidak melakukan perubahan.</div>
+    </div>
+
+    <!-- Speed options -->
+    <div class="opt-panel" id="opt-speed" style="display:none">
+      <div class="slider-row">
+        <span class="slider-label">Speed rate</span>
+        <input type="range" id="speedVal" min="0.90" max="1.10" step="0.01" value="1.04"
+          oninput="this.nextElementSibling.textContent=parseFloat(this.value).toFixed(2)+'x'">
+        <span class="slider-val">1.04x</span>
+      </div>
+      <div class="opt-desc">0.97–1.03 hampir tidak terdengar. 1.04–1.06 efektif bypass tapi ada perubahan durasi file output.</div>
+    </div>
+
+    <!-- Noise options -->
+    <div class="opt-panel" id="opt-noise" style="display:none">
+      <div class="slider-row">
+        <span class="slider-label">Noise level</span>
+        <input type="range" id="noiseVal" min="0.001" max="0.025" step="0.001" value="0.005"
+          oninput="this.nextElementSibling.textContent=(parseFloat(this.value)*100).toFixed(1)+'%'">
+        <span class="slider-val">0.5%</span>
+      </div>
+      <div class="opt-desc">0.1–0.5% hampir tidak terdengar namun cukup mengubah fingerprint. Di atas 1% mulai terdengar hiss halus.</div>
+    </div>
+
+    <!-- Reverb options -->
+    <div class="opt-panel" id="opt-reverb" style="display:none">
+      <div class="slider-row">
+        <span class="slider-label">Wet mix</span>
+        <input type="range" id="reverbMix" min="0.03" max="0.35" step="0.01" value="0.10"
+          oninput="this.nextElementSibling.textContent=Math.round(parseFloat(this.value)*100)+'%'">
+        <span class="slider-val">10%</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-label">Decay</span>
+        <input type="range" id="reverbDecay" min="0.5" max="4.0" step="0.1" value="1.5"
+          oninput="this.nextElementSibling.textContent=parseFloat(this.value).toFixed(1)+'s'">
+        <span class="slider-val">1.5s</span>
+      </div>
+      <div class="opt-desc">Wet mix 8–15% hampir tidak terdengar tapi sangat efektif mengubah acoustic fingerprint.</div>
+    </div>
+
+    <!-- EQ options -->
+    <div class="opt-panel" id="opt-eq" style="display:none">
+      <div class="slider-row">
+        <span class="slider-label">Band</span>
+        <select class="styled-select" id="eqBand" style="flex:1">
+          <option value="lowshelf|200">Low Shelf — 200 Hz</option>
+          <option value="peaking|500">Mid — 500 Hz</option>
+          <option value="peaking|2000" selected>Mid-High — 2 kHz</option>
+          <option value="peaking|5000">High-Mid — 5 kHz</option>
+          <option value="highshelf|8000">High Shelf — 8 kHz</option>
+        </select>
+      </div>
+      <div class="slider-row">
+        <span class="slider-label">Gain</span>
+        <input type="range" id="eqGain" min="-8" max="8" step="0.5" value="-3"
+          oninput="this.nextElementSibling.textContent=(parseFloat(this.value)>=0?'+':'')+parseFloat(this.value).toFixed(1)+' dB'">
+        <span class="slider-val">-3.0 dB</span>
+      </div>
+      <div class="opt-desc">Subtle EQ cut/boost mengubah spectrum fingerprint. -3 dB di 2 kHz hampir tidak terdengar namun efektif.</div>
+    </div>
+
+    <!-- Stereo Imager options -->
+    <div class="opt-panel" id="opt-stereo" style="display:none">
+      <div class="slider-row">
+        <span class="slider-label">Stereo width</span>
+        <input type="range" id="stereoWidth" min="0.5" max="2.5" step="0.05" value="1.4"
+          oninput="this.nextElementSibling.textContent=parseFloat(this.value).toFixed(2)+'x'">
+        <span class="slider-val">1.40x</span>
+      </div>
+      <div class="opt-desc">Proses Mid-Side untuk mengubah stereo field. 1.0x = tidak berubah, &lt;1.0x = narrower, &gt;1.0x = wider.</div>
+    </div>
+
+    <!-- Phase Flip options (NEW) -->
+    <div class="opt-panel" id="opt-phase" style="display:none">
+      <div class="slider-row">
+        <span class="slider-label">Target channel</span>
+        <select class="styled-select" id="phaseChannel" style="flex:1">
+          <option value="left">Kiri (L) saja</option>
+          <option value="right">Kanan (R) saja</option>
+          <option value="both" selected>Kedua channel</option>
+        </select>
+      </div>
+      <div class="opt-desc">Inversi polarity audio pada channel yang dipilih. Mengubah waveform tanpa perubahan suara yang terdengar signifikan. Teknik bypass yang unik dan tidak umum digunakan, sehingga lebih sulit dideteksi sistem.</div>
+    </div>
+
+    <!-- Combo options -->
+    <div class="opt-panel" id="opt-combo" style="display:none">
+      <div class="opt-desc" style="margin-bottom:.65rem">Pilih kombinasi teknik yang ingin digunakan sekaligus:</div>
+      <div class="combo-opts">
+        <!-- Combo pitch -->
+        <div class="combo-row">
+          <div class="combo-check-row">
+            <input type="checkbox" id="cb-pitch" checked onchange="toggleComboSub('cbs-pitch',this)">
+            <label class="combo-check-label" for="cb-pitch">🎼 Pitch Shift</label>
+            <span class="slider-val" id="cv-pitch">+2 st</span>
+          </div>
+          <div class="combo-sub show" id="cbs-pitch">
+            <div class="slider-row" style="margin-top:.4rem">
+              <span class="slider-label">Semitone</span>
+              <input type="range" id="cpitchVal" min="-6" max="6" step="1" value="2"
+                oninput="document.getElementById('cv-pitch').textContent=(this.value>0?'+':'')+this.value+' st'">
+              <span></span>
+            </div>
+          </div>
+        </div>
+        <!-- Combo speed -->
+        <div class="combo-row">
+          <div class="combo-check-row">
+            <input type="checkbox" id="cb-speed" checked onchange="toggleComboSub('cbs-speed',this)">
+            <label class="combo-check-label" for="cb-speed">⏩ Speed Tweak</label>
+            <span class="slider-val" id="cv-speed">1.03x</span>
+          </div>
+          <div class="combo-sub show" id="cbs-speed">
+            <div class="slider-row" style="margin-top:.4rem">
+              <span class="slider-label">Rate</span>
+              <input type="range" id="cspeedVal" min="0.95" max="1.05" step="0.01" value="1.03"
+                oninput="document.getElementById('cv-speed').textContent=parseFloat(this.value).toFixed(2)+'x'">
+              <span></span>
+            </div>
+          </div>
+        </div>
+        <!-- Combo noise -->
+        <div class="combo-row">
+          <div class="combo-check-row">
+            <input type="checkbox" id="cb-noise" checked onchange="toggleComboSub('cbs-noise',this)">
+            <label class="combo-check-label" for="cb-noise">🌊 Noise Inject</label>
+            <span class="slider-val" id="cv-noise">0.3%</span>
+          </div>
+          <div class="combo-sub show" id="cbs-noise">
+            <div class="slider-row" style="margin-top:.4rem">
+              <span class="slider-label">Level</span>
+              <input type="range" id="cnoiseVal" min="0.001" max="0.015" step="0.001" value="0.003"
+                oninput="document.getElementById('cv-noise').textContent=(parseFloat(this.value)*100).toFixed(1)+'%'">
+              <span></span>
+            </div>
+          </div>
+        </div>
+        <!-- Combo reverb -->
+        <div class="combo-row">
+          <div class="combo-check-row">
+            <input type="checkbox" id="cb-reverb" onchange="toggleComboSub('cbs-reverb',this)">
+            <label class="combo-check-label" for="cb-reverb">🔮 Reverb Inject</label>
+            <span class="slider-val" id="cv-reverb">8%</span>
+          </div>
+          <div class="combo-sub" id="cbs-reverb">
+            <div class="slider-row" style="margin-top:.4rem">
+              <span class="slider-label">Wet mix</span>
+              <input type="range" id="creverbMix" min="0.03" max="0.20" step="0.01" value="0.08"
+                oninput="document.getElementById('cv-reverb').textContent=Math.round(parseFloat(this.value)*100)+'%'">
+              <span></span>
+            </div>
+          </div>
+        </div>
+        <!-- Combo phase (NEW) -->
+        <div class="combo-row">
+          <div class="combo-check-row">
+            <input type="checkbox" id="cb-phase" onchange="toggleComboSub('cbs-phase',this)">
+            <label class="combo-check-label" for="cb-phase">🔁 Phase Flip <span style="font-size:9px;background:rgba(40,216,144,.15);color:var(--green);padding:1px 5px;border-radius:10px">BARU</span></label>
+          </div>
+        </div>
+        <!-- Combo stereo -->
+        <div class="combo-row">
+          <div class="combo-check-row">
+            <input type="checkbox" id="cb-stereo" onchange="toggleComboSub('cbs-stereo',this)">
+            <label class="combo-check-label" for="cb-stereo">🔊 Stereo Imager</label>
+            <span class="slider-val" id="cv-stereo">1.30x</span>
+          </div>
+          <div class="combo-sub" id="cbs-stereo">
+            <div class="slider-row" style="margin-top:.4rem">
+              <span class="slider-label">Width</span>
+              <input type="range" id="cstereoWidth" min="0.5" max="2.0" step="0.05" value="1.3"
+                oninput="document.getElementById('cv-stereo').textContent=parseFloat(this.value).toFixed(2)+'x'">
+              <span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OUTPUT SETTINGS -->
+  <div class="settings-card">
+    <div class="setting-label"><span>📤</span> Output</div>
+    <div class="output-row">
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:.4rem">Format</div>
+        <select class="styled-select" id="outFmt" onchange="updateFormatUI()">
+          <option value="wav">WAV (Lossless)</option>
+          <option value="mp3">MP3 (Compressed)</option>
+        </select>
+      </div>
+      <div id="mp3BitrateWrap" style="display:none">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:.4rem">MP3 Bitrate</div>
+        <select class="styled-select" id="mp3Bitrate">
+          <option value="128">128 kbps</option>
+          <option value="192" selected>192 kbps (Disarankan)</option>
+          <option value="256">256 kbps</option>
+          <option value="320">320 kbps (Maksimum)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Sample rate (NEW) -->
+    <div class="output-row" style="margin-top:.75rem">
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:.4rem">Sample Rate Output <span style="font-size:9px;background:rgba(40,216,144,.15);color:var(--green);padding:1px 5px;border-radius:10px;font-weight:700">BARU</span></div>
+        <select class="styled-select" id="outSampleRate">
+          <option value="0">Sama dengan sumber</option>
+          <option value="22050">22.050 Hz (Kecil)</option>
+          <option value="44100">44.100 Hz (CD)</option>
+          <option value="48000" selected>48.000 Hz (Standard)</option>
+          <option value="96000">96.000 Hz (Hi-Res)</option>
+        </select>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:.4rem">Output Gain <span style="font-size:9px;background:rgba(40,216,144,.15);color:var(--green);padding:1px 5px;border-radius:10px;font-weight:700">BARU</span></div>
+        <div class="slider-row" style="margin-top:.3rem">
+          <input type="range" id="outGain" min="-12" max="6" step="0.5" value="0"
+            oninput="document.getElementById('outGainVal').textContent=(parseFloat(this.value)>=0?'+':'')+parseFloat(this.value).toFixed(1)+' dB'">
+          <span class="slider-val" id="outGainVal" style="min-width:56px">0.0 dB</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fade in/out (NEW) -->
+    <div style="margin-top:.875rem">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:.5rem">Fade In / Out <span style="font-size:9px;background:rgba(40,216,144,.15);color:var(--green);padding:1px 5px;border-radius:10px;font-weight:700">BARU</span></div>
+      <div class="output-row">
+        <div>
+          <div class="slider-row">
+            <span class="slider-label" style="min-width:60px">Fade In</span>
+            <input type="range" id="fadeIn" min="0" max="3" step="0.1" value="0"
+              oninput="document.getElementById('fadeInVal').textContent=parseFloat(this.value).toFixed(1)+'s'">
+            <span class="slider-val" id="fadeInVal">0.0s</span>
+          </div>
+        </div>
+        <div>
+          <div class="slider-row">
+            <span class="slider-label" style="min-width:60px">Fade Out</span>
+            <input type="range" id="fadeOut" min="0" max="3" step="0.1" value="0"
+              oninput="document.getElementById('fadeOutVal').textContent=parseFloat(this.value).toFixed(1)+'s'">
+            <span class="slider-val" id="fadeOutVal">0.0s</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- File naming toggles -->
+    <div style="margin-top:.875rem;display:flex;flex-direction:column;gap:.35rem">
+      <div class="toggle-row">
+        <span class="tl">Simpan nama file asli</span>
+        <label class="toggle"><input type="checkbox" id="keepName" checked><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span class="tl">Tambah prefix "bypassed_"</span>
+        <label class="toggle"><input type="checkbox" id="addPrefix"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span class="tl">Auto-download setelah setiap file selesai <span style="font-size:9px;background:rgba(40,216,144,.15);color:var(--green);padding:1px 5px;border-radius:10px;font-weight:700">BARU</span></span>
+        <label class="toggle"><input type="checkbox" id="autoDownload"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span class="tl">Tampilkan waveform mini di hasil <span style="font-size:9px;background:rgba(40,216,144,.15);color:var(--green);padding:1px 5px;border-radius:10px;font-weight:700">BARU</span></span>
+        <label class="toggle"><input type="checkbox" id="showWave" checked><span class="toggle-slider"></span></label>
+      </div>
+    </div>
+  </div>
+
+  <!-- PARALLEL PROCESSING INFO -->
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem;padding:.5rem .75rem;background:rgba(40,216,144,.05);border:1px solid rgba(40,216,144,.15);border-radius:8px">
+    <span style="font-size:16px">⚡</span>
+    <div style="font-size:12px;color:var(--muted)">
+      <strong style="color:var(--green)">Parallel Processing Aktif</strong> — Proses 2 file serentak untuk kecepatan maksimum
+    </div>
+  </div>
+
+  <button class="run-btn" id="runBtn" onclick="runAll()" disabled>⚡ Proses Semua File</button>
+  <button class="cancel-btn" id="cancelBtn" onclick="cancelAll()">✕ Batalkan Proses</button>
+  <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:.5rem">
+    Tekan <kbd style="background:var(--surface2);border:1px solid var(--border2);border-radius:4px;padding:1px 5px;font-size:10px">Enter</kbd> untuk mulai proses
+  </p>
+
+  <!-- RESULTS -->
+  <div id="resultsSection" style="display:none">
+    <hr>
+    <p class="section-title">Hasil</p>
+    <div id="procTimeDisplay" class="proc-time"></div>
+    <div id="statsRow" class="stats-row"></div>
+    
+    <!-- ZIP options (NEW) -->
+    <div style="font-size:11px;color:var(--muted);margin-bottom:.4rem">Mode Download ZIP:</div>
+    <div class="zip-opts" style="margin-bottom:.75rem">
+      <button class="zip-opt" id="zo-store" onclick="setZipMode('store',this)">⚡ Fast (tanpa kompresi)</button>
+      <button class="zip-opt sel" id="zo-deflate" onclick="setZipMode('deflate',this)">📦 Kecil (dengan kompresi)</button>
+    </div>
+    
+    <button class="dl-all" id="dlAllBtn" onclick="downloadAll()">⬇️ Download Semua (ZIP)</button>
+    <button class="clear-results-btn" onclick="clearResults()">🗑 Hapus Semua Hasil</button>
+    <div id="resultList"></div>
+  </div>
+
+</div>
+
+<footer>
+  Dibuat oleh <strong>Iruu Bypass</strong> &nbsp;·&nbsp; AudioBypass Pro
+  <br><span class="version-tag">v5.0 · Parallel Processing · Client-side only · Tidak ada upload ke server</span>
+</footer>
+
+<!-- STATUS BAR -->
+<div class="status-bar" id="statusBar">
+  <div class="sb-dot info" id="sbDot"></div>
+  <span class="sb-text" id="sbText">Siap — seret file atau klik area upload</span>
+  <div class="sb-prog"><div class="sb-fill" id="sbFill"></div></div>
+  <span class="sb-pct" id="sbPct"></span>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js"></script>
+<script>
+// ── STATE ──────────────────────────────────────
+let techSel          = 'pitch';
+let fileQueue        = [];
+let linkQueue        = [];
+let audioCtx         = null;
+let results          = [];
+let idCtr            = 0;
+let processing       = false;
+let cancelRequested  = false;
+let previewAudioEl   = null;
+let previewPlayingId = null;
+let procStartTime    = 0;
+let zipMode          = 'deflate';
+const CONCURRENCY    = 2;  // process N files in parallel
+
+// ── AUDIO CONTEXT ──────────────────────────────
+function getCtx(){
+  if(!audioCtx || audioCtx.state==='closed')
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+// ── KEYBOARD SHORTCUT ──────────────────────────
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Enter' && !e.ctrlKey && !e.metaKey && !e.shiftKey){
+    const active = document.activeElement;
+    if(active && (active.tagName==='INPUT'||active.tagName==='TEXTAREA'||active.tagName==='SELECT')) return;
+    const btn = document.getElementById('runBtn');
+    if(!btn.disabled) runAll();
+  }
+});
+
+// ── TABS ───────────────────────────────────────
+function switchTab(name, el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+}
+
+// ── FILE UPLOAD ────────────────────────────────
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+fileInput.addEventListener('change', e=>{
+  Array.from(e.target.files).forEach(addFile);
+  fileInput.value = '';
+});
+dropZone.addEventListener('dragover', e=>{ e.preventDefault(); dropZone.classList.add('drag'); });
+dropZone.addEventListener('dragleave', ()=>dropZone.classList.remove('drag'));
+dropZone.addEventListener('drop', e=>{
+  e.preventDefault();
+  dropZone.classList.remove('drag');
+  Array.from(e.dataTransfer.files).forEach(addFile);
+});
+
+function addFile(file){
+  if(!file.type.startsWith('audio/') && !file.type.startsWith('video/')) return;
+  const id = ++idCtr;
+  const item = { id, file, name:file.name, duration:null, status:'ready',
+                 resultBlob:null, resultUrl:null, outName:null, techUsed:null, waveData:null };
+  fileQueue.push(item);
+  renderFileQueue();
+  checkRunnable();
+  checkSizeWarning();
+  getAudioDuration(file, d=>{ item.duration = d; updateQueueItemMeta(id); });
+}
+
+function getAudioDuration(file, cb){
+  const url = URL.createObjectURL(file);
+  const a   = new Audio();
+  a.addEventListener('loadedmetadata', ()=>{ cb(isFinite(a.duration) ? a.duration : null); URL.revokeObjectURL(url); });
+  a.addEventListener('error', ()=>{ cb(null); URL.revokeObjectURL(url); });
+  a.src = url;
+}
+
+function updateQueueItemMeta(id){
+  const item = fileQueue.find(f=>f.id===id);
+  if(!item) return;
+  const el = document.getElementById('qm-'+id);
+  if(el) el.textContent = fmtMeta(item);
+}
+
+function fmtMeta(item){
+  let s = fmtSize(item.file.size);
+  if(item.duration) s += ' · ' + fmtDuration(item.duration);
+  const typeRaw = (item.file.type||'audio/unknown').split('/')[1] || 'AUDIO';
+  s += ' · ' + typeRaw.toUpperCase().split(';')[0];
+  return s;
+}
+
+function removeFile(id){
+  const item = fileQueue.find(f=>f.id===id);
+  if(item && item.resultUrl) URL.revokeObjectURL(item.resultUrl);
+  fileQueue = fileQueue.filter(f=>f.id!==id);
+  renderFileQueue();
+  checkRunnable();
+  checkSizeWarning();
+}
+
+function clearAllFiles(){
+  fileQueue.forEach(f=>{ if(f.resultUrl) URL.revokeObjectURL(f.resultUrl); });
+  fileQueue = [];
+  renderFileQueue();
+  checkRunnable();
+  checkSizeWarning();
+}
+
+function renderFileQueue(){
+  const el  = document.getElementById('fileQueue');
+  const hdr = document.getElementById('queueHeaderWrap');
+  const cnt = document.getElementById('queueCount');
+  if(!fileQueue.length){ el.innerHTML=''; hdr.style.display='none'; return; }
+  hdr.style.display='block';
+  cnt.textContent = fileQueue.length + ' file';
+  el.innerHTML = fileQueue.map(f=>`
+    <div class="queue-item ${f.status}" id="qi-${f.id}">
+      <span class="qi-icon">${audioIcon(f.name)}</span>
+      <div class="qi-info">
+        <div class="qi-name">${esc(f.name)}</div>
+        <div class="qi-meta" id="qm-${f.id}">${fmtMeta(f)}</div>
+        <div class="qi-bar"><div class="qi-prog" id="qp-${f.id}" style="width:${f.status==='done'?100:0}%"></div></div>
+      </div>
+      <span class="qi-status" id="qs-${f.id}" style="color:${statusColor(f.status)}">${statusLabel(f.status)}</span>
+      <button class="qi-rm" onclick="removeFile(${f.id})" title="Hapus file ini">✕</button>
+    </div>
+  `).join('');
+}
+
+function checkSizeWarning(){
+  const total = fileQueue.reduce((s,f)=>s+f.file.size, 0);
+  const warn  = document.getElementById('sizewarn');
+  warn.innerHTML = total > 300*1024*1024
+    ? `<div class="warn-msg">⚠️ Total ukuran cukup besar (${fmtSize(total)}). Proses bisa lambat tergantung spesifikasi device.</div>`
+    : '';
+}
+
+// ── LINK ───────────────────────────────────────
+function addLink(){
+  const raw = document.getElementById('linkInput').value.trim();
+  if(!raw) return;
+  if(!isValidUrl(raw)){ alert('URL tidak valid.'); return; }
+  const plat = detectPlatform(raw);
+  const id   = ++idCtr;
+  linkQueue.push({ id, url:raw, platform:plat, name:plat.name+' — '+shortUrl(raw), status:'pending' });
+  renderLinkQueue();
+  document.getElementById('linkInput').value = '';
+}
+
+document.getElementById('linkInput').addEventListener('keydown', e=>{
+  if(e.key==='Enter') addLink();
+});
+
+function isValidUrl(u){ try{ new URL(u); return true; }catch{ return false; } }
+
+function detectPlatform(url){
+  if(/youtube\.com|youtu\.be/i.test(url)) return {name:'YouTube', icon:'📺'};
+  if(/tiktok\.com/i.test(url))            return {name:'TikTok',  icon:'🎵'};
+  if(/spotify\.com/i.test(url))           return {name:'Spotify', icon:'🟢'};
+  if(/soundcloud\.com/i.test(url))        return {name:'SoundCloud', icon:'🔶'};
+  if(/instagram\.com/i.test(url))         return {name:'Instagram', icon:'📸'};
+  if(/twitter\.com|x\.com/i.test(url))    return {name:'X/Twitter', icon:'🐦'};
+  if(/facebook\.com/i.test(url))          return {name:'Facebook', icon:'👤'};
+  return {name:'URL', icon:'🔗'};
+}
+
+function shortUrl(u){
+  try{
+    const p = new URL(u);
+    const path = p.pathname.slice(0, 22) + (p.pathname.length > 22 ? '…' : '');
+    return p.hostname + path;
+  }catch{ return u.slice(0, 38); }
+}
+
+function removeLinkItem(id){
+  linkQueue = linkQueue.filter(l=>l.id!==id);
+  renderLinkQueue();
+}
+
+function renderLinkQueue(){
+  const el = document.getElementById('linkQueue');
+  if(!linkQueue.length){ el.innerHTML=''; return; }
+  el.innerHTML = linkQueue.map(l=>`
+    <div class="queue-item" id="qi-${l.id}">
+      <span class="qi-icon">${l.platform.icon}</span>
+      <div class="qi-info">
+        <div class="qi-name">${esc(l.name)}</div>
+        <div class="qi-meta">${esc(l.url.slice(0,60))}${l.url.length>60?'…':''}</div>
+      </div>
+      <span style="font-size:11px;color:var(--yellow);white-space:nowrap;font-weight:600">Manual</span>
+      <button class="qi-rm" onclick="removeLinkItem(${l.id})" title="Hapus">✕</button>
+    </div>
+  `).join('');
+
+  let cobaltBtn = document.getElementById('cobaltBtn');
+  if(!cobaltBtn){
+    cobaltBtn = document.createElement('button');
+    cobaltBtn.id = 'cobaltBtn';
+    cobaltBtn.style.cssText='display:block;width:100%;margin-top:.75rem;padding:9px;background:transparent;border:1px solid var(--accent);color:var(--accent2);border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;transition:.15s';
+    cobaltBtn.onmouseover = ()=>{ cobaltBtn.style.background='rgba(124,109,250,.1)'; };
+    cobaltBtn.onmouseout  = ()=>{ cobaltBtn.style.background='transparent'; };
+    cobaltBtn.textContent = '→ Buka cobalt.tools untuk download audio';
+    cobaltBtn.onclick = ()=>{ window.open('https://cobalt.tools/?u='+encodeURIComponent(linkQueue[0]?.url||''), '_blank'); };
+    el.appendChild(cobaltBtn);
+  }
+}
+
+// ── TECHNIQUE SELECT ───────────────────────────
+function selTech(el){
+  document.querySelectorAll('.tech-opt').forEach(o=>o.classList.remove('sel'));
+  el.classList.add('sel');
+  techSel = el.dataset.v;
+  ['pitch','speed','noise','reverb','eq','stereo','phase','combo'].forEach(t=>{
+    document.getElementById('opt-'+t).style.display = t===techSel ? 'block' : 'none';
+  });
+}
+
+function toggleComboSub(subId, cb){
+  const sub = document.getElementById(subId);
+  if(sub) sub.classList.toggle('show', cb.checked);
+}
+
+function updateFormatUI(){
+  const fmt = document.getElementById('outFmt').value;
+  document.getElementById('mp3BitrateWrap').style.display = fmt==='mp3' ? 'block' : 'none';
+}
+
+// ── ZIP MODE ───────────────────────────────────
+function setZipMode(mode, el){
+  zipMode = mode;
+  document.querySelectorAll('.zip-opt').forEach(z=>z.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+// ── RUN / CANCEL ───────────────────────────────
+function checkRunnable(){
+  document.getElementById('runBtn').disabled = fileQueue.length===0 || processing;
+}
+
+// ── MAIN PROCESSING WITH PARALLEL SUPPORT ──────
+async function runAll(){
+  if(!fileQueue.length || processing) return;
+  processing      = true;
+  cancelRequested = false;
+  procStartTime   = Date.now();
+
+  // Reset previous results
+  results.forEach(r=>{ if(r.resultUrl) URL.revokeObjectURL(r.resultUrl); });
+  results = [];
+  stopPreview();
+
+  // Reset queue items status
+  fileQueue.forEach(f=>{
+    f.status = 'ready';
+    f.resultBlob = null; f.resultUrl = null; f.outName = null;
+  });
+
+  const btn       = document.getElementById('runBtn');
+  const cancelBtn = document.getElementById('cancelBtn');
+  btn.disabled = true;
+  btn.classList.add('running');
+  btn.textContent = '⏳ Memproses...';
+  cancelBtn.classList.add('show');
+  cancelBtn.disabled = false;
+  cancelBtn.textContent = '✕ Batalkan Proses';
+
+  document.getElementById('resultsSection').style.display = 'none';
+  document.getElementById('resultList').innerHTML = '';
+  showStatus('Memulai proses...', 'info', 0);
+
+  const fmt          = document.getElementById('outFmt').value;
+  const techSnapshot = techSel;
+  const total        = fileQueue.length;
+
+  // Parallel processing: batch of CONCURRENCY files
+  for(let i = 0; i < total; i += CONCURRENCY){
+    if(cancelRequested) break;
+    const batch = fileQueue.slice(i, Math.min(i + CONCURRENCY, total));
+    // Show progress hint
+    showStatus(`Batch ${Math.floor(i/CONCURRENCY)+1}/${Math.ceil(total/CONCURRENCY)} — proses paralel...`, 'info', (i/total)*100);
+    await Promise.all(batch.map(item => processOneFile(item, total, techSnapshot, fmt)));
+  }
+
+  const elapsed = ((Date.now() - procStartTime) / 1000).toFixed(1);
+  finalizeResults(elapsed);
+
+  processing = false;
+  cancelRequested = false;
+  btn.disabled = fileQueue.length===0;
+  btn.classList.remove('running');
+  btn.textContent = '⚡ Proses Semua File';
+  cancelBtn.classList.remove('show');
+}
+
+// ── PROCESS ONE FILE ────────────────────────────
+async function processOneFile(item, total, techSnapshot, fmt){
+  if(cancelRequested) return;
+  item.techUsed = techSnapshot;
+  item.status   = 'loading';
+
+  const qi = document.getElementById('qi-'+item.id);
+  if(qi) qi.className = 'queue-item loading';
+  setQueueStatus(item.id, 'loading', '⏳');
+  setQueueProg(item.id, 5);
+
+  try{
+    // Load file buffer
+    const ab = await item.file.arrayBuffer();
+    if(cancelRequested) return;
+    setQueueProg(item.id, 20);
+
+    // Decode audio
+    const ctx    = getCtx();
+    const srcBuf = await ctx.decodeAudioData(ab.slice(0));
+    item.duration = srcBuf.duration;
+
+    setQueueStatus(item.id, 'loading', '⚙️');
+    setQueueProg(item.id, 35);
+
+    // Apply bypass technique
+    let outBuf = await applyBypass(srcBuf, techSnapshot);
+    setQueueProg(item.id, 60);
+
+    // Apply output processing (gain, fade, resample)
+    outBuf = await applyOutputProcessing(outBuf);
+    setQueueProg(item.id, 72);
+
+    // Extract waveform data for mini preview
+    item.waveData = extractWaveData(outBuf, 120);
+    setQueueProg(item.id, 78);
+
+    // Encode output
+    let blob, ext;
+    if(fmt === 'mp3'){
+      if(typeof lamejs === 'undefined') throw new Error('Encoder MP3 belum load. Pilih WAV atau refresh halaman.');
+      const bitrate = parseInt(document.getElementById('mp3Bitrate').value, 10);
+      blob = await bufToMp3(outBuf, bitrate);
+      ext  = '.mp3';
+    } else {
+      blob = new Blob([bufToWav(outBuf)], {type:'audio/wav'});
+      ext  = '.wav';
+    }
+
+    const url     = URL.createObjectURL(blob);
+    const outName = buildOutName(item.name, ext);
+
+    item.resultBlob = blob;
+    item.resultUrl  = url;
+    item.outName    = outName;
+    item.status     = 'done';
+    results.push(item);
+
+    if(qi) qi.className = 'queue-item done';
+    setQueueStatus(item.id, 'done', '✅');
+    setQueueProg(item.id, 100);
+    updateQueueItemMeta(item.id);
+
+    // Append result item immediately (don't wait for all files)
+    appendResultItem(item);
+
+    // Show results section if first result
+    document.getElementById('resultsSection').style.display = 'block';
+
+    // Auto-download if toggle is on
+    if(document.getElementById('autoDownload').checked){
+      triggerDownload(url, outName);
+    }
+
+  } catch(e){
+    item.status = 'err';
+    if(qi) qi.className = 'queue-item err';
+    setQueueStatus(item.id, 'err', '❌');
+    setQueueProg(item.id, 0);
+    const metaEl = document.getElementById('qm-'+item.id);
+    if(metaEl) metaEl.textContent = '⚠ ' + (e.message || 'Unknown error');
+    console.error('Processing error:', item.name, e);
+  }
+}
+
+function triggerDownload(url, name){
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+function finalizeResults(elapsedSec){
+  if(!results.length) return;
+  const time = document.getElementById('procTimeDisplay');
+  if(elapsedSec) time.textContent = `Selesai dalam ${elapsedSec}s · ${results.length} file diproses`;
+  renderStats();
+  document.getElementById('resultsSection').scrollIntoView({behavior:'smooth', block:'start'});
+  showStatus(`Selesai! ${results.length} file berhasil dalam ${elapsedSec}s`, 'ok', 100);
+}
+
+function appendResultItem(r){
+  const list = document.getElementById('resultList');
+  const div = document.createElement('div');
+  div.className = 'result-item';
+  div.id = 'ri-' + r.id;
+  div.innerHTML = `
+    <span class="ri-icon">✅</span>
+    <div class="ri-info">
+      <div class="ri-name">${esc(r.outName)}</div>
+      <div class="ri-meta">
+        ${fmtSize(r.resultBlob.size)}
+        · ${r.outName.endsWith('.mp3') ? 'MP3' : 'WAV'}
+        · ${techLabel(r.techUsed)}
+        ${r.duration ? ' · '+fmtDuration(r.duration) : ''}
+      </div>
+      <div class="ri-wave" id="rw-${r.id}"></div>
+    </div>
+    <div class="ri-actions">
+      <button class="prev-btn" id="prev-${r.id}" onclick="togglePreview(${r.id},'${r.resultUrl}',this)">▶</button>
+      <a class="dl-btn" href="${r.resultUrl}" download="${esc(r.outName)}">⬇️</a>
+    </div>
+  `;
+  list.appendChild(div);
+
+  // Draw waveform if enabled
+  if(document.getElementById('showWave').checked && r.waveData){
+    const waveEl = document.getElementById('rw-'+r.id);
+    const canvas = document.createElement('canvas');
+    canvas.className = 'waveform';
+    canvas.width  = 300;
+    canvas.height = 32;
+    waveEl.appendChild(canvas);
+    drawWaveform(canvas, r.waveData);
+  }
+}
+
+// ── WAVEFORM ───────────────────────────────────
+function extractWaveData(buf, points){
+  const data = buf.getChannelData(0);
+  const step = Math.max(1, Math.floor(data.length / points));
+  const peaks = new Float32Array(points);
+  for(let x = 0; x < points; x++){
+    let max = 0;
+    const start = x * step;
+    const end   = Math.min(start + step, data.length);
+    for(let i = start; i < end; i++){
+      const abs = Math.abs(data[i]);
+      if(abs > max) max = abs;
+    }
+    peaks[x] = max;
+  }
+  return peaks;
+}
+
+function drawWaveform(canvas, peaks){
+  const ctx = canvas.getContext('2d');
+  const w   = canvas.width;
+  const h   = canvas.height;
+  const mid = h / 2;
+  ctx.clearRect(0, 0, w, h);
+  
+  // Gradient fill
+  const grad = ctx.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, 'rgba(124,109,250,0.8)');
+  grad.addColorStop(1, 'rgba(168,159,248,0.3)');
+  ctx.fillStyle = grad;
+  
+  const barW = Math.max(1, w / peaks.length);
+  for(let i = 0; i < peaks.length; i++){
+    const barH = Math.max(1, peaks[i] * mid * 1.8);
+    ctx.fillRect(i * barW, mid - barH, Math.max(1, barW - 0.5), barH * 2);
+  }
+}
+
+// ── OUTPUT PROCESSING ──────────────────────────
+async function applyOutputProcessing(buf){
+  let out = buf;
+
+  // Apply gain if not 0
+  const gainDb = parseFloat(document.getElementById('outGain').value);
+  if(gainDb !== 0) out = applyGain(out, gainDb);
+
+  // Apply fade
+  const fadeInSec  = parseFloat(document.getElementById('fadeIn').value);
+  const fadeOutSec = parseFloat(document.getElementById('fadeOut').value);
+  if(fadeInSec > 0 || fadeOutSec > 0) out = applyFade(out, fadeInSec, fadeOutSec);
+
+  // Resample if target SR differs
+  const targetSr = parseInt(document.getElementById('outSampleRate').value, 10);
+  if(targetSr > 0 && targetSr !== out.sampleRate) out = await resample(out, targetSr);
+
+  return out;
+}
+
+function applyGain(buf, gainDb){
+  const factor = Math.pow(10, gainDb / 20);
+  const ch  = buf.numberOfChannels;
+  const len = buf.length;
+  const out = new AudioBuffer({numberOfChannels:ch, length:len, sampleRate:buf.sampleRate});
+  for(let c = 0; c < ch; c++){
+    const inp  = buf.getChannelData(c);
+    const outp = out.getChannelData(c);
+    for(let i = 0; i < len; i++) outp[i] = Math.max(-1, Math.min(1, inp[i] * factor));
+  }
+  return out;
+}
+
+function applyFade(buf, fadeInSec, fadeOutSec){
+  const sr          = buf.sampleRate;
+  const len         = buf.length;
+  const ch          = buf.numberOfChannels;
+  const fadeInSamp  = Math.min(Math.round(fadeInSec * sr),  Math.floor(len / 2));
+  const fadeOutSamp = Math.min(Math.round(fadeOutSec * sr), Math.floor(len / 2));
+  const out = new AudioBuffer({numberOfChannels:ch, length:len, sampleRate:sr});
+  for(let c = 0; c < ch; c++){
+    const inp  = buf.getChannelData(c);
+    const outp = out.getChannelData(c);
+    for(let i = 0; i < len; i++){
+      let g = 1;
+      if(fadeInSamp  > 0 && i < fadeInSamp)         g *= i / fadeInSamp;
+      if(fadeOutSamp > 0 && i > len - fadeOutSamp)   g *= (len - i) / fadeOutSamp;
+      outp[i] = inp[i] * g;
+    }
+  }
+  return out;
+}
+
+async function resample(buf, targetSr){
+  if(buf.sampleRate === targetSr) return buf;
+  const duration = buf.length / buf.sampleRate;
+  const newLen   = Math.max(1, Math.round(duration * targetSr));
+  const ctx = new OfflineAudioContext(buf.numberOfChannels, newLen, targetSr);
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.connect(ctx.destination);
+  src.start(0);
+  return ctx.startRendering();
+}
+
+// ── BYPASS TECHNIQUES ──────────────────────────
+async function applyBypass(buf, tech){
+  switch(tech || techSel){
+    case 'pitch':  return pitchShift(buf, parseFloat(document.getElementById('pitchVal').value));
+    case 'speed':  return changeSpeed(buf, parseFloat(document.getElementById('speedVal').value));
+    case 'noise':  return addNoise(buf, parseFloat(document.getElementById('noiseVal').value));
+    case 'reverb': return addReverb(buf, parseFloat(document.getElementById('reverbMix').value), parseFloat(document.getElementById('reverbDecay').value));
+    case 'eq':     return applyEQ(buf, document.getElementById('eqBand').value, parseFloat(document.getElementById('eqGain').value));
+    case 'stereo': return applyStereo(buf, parseFloat(document.getElementById('stereoWidth').value));
+    case 'phase':  return phaseFlip(buf, document.getElementById('phaseChannel').value);
+    case 'combo':  return applyCombo(buf);
+    default:       return buf;
+  }
+}
+
+async function applyCombo(buf){
+  let b = buf;
+  if(document.getElementById('cb-pitch').checked)
+    b = await pitchShift(b, parseFloat(document.getElementById('cpitchVal').value));
+  if(document.getElementById('cb-speed').checked)
+    b = await changeSpeed(b, parseFloat(document.getElementById('cspeedVal').value));
+  if(document.getElementById('cb-noise').checked)
+    b = addNoise(b, parseFloat(document.getElementById('cnoiseVal').value));
+  if(document.getElementById('cb-reverb').checked)
+    b = await addReverb(b, parseFloat(document.getElementById('creverbMix').value), 1.5);
+  if(document.getElementById('cb-phase').checked)
+    b = phaseFlip(b, 'left');
+  if(document.getElementById('cb-stereo').checked)
+    b = applyStereo(b, parseFloat(document.getElementById('cstereoWidth').value));
+  return b;
+}
+
+// ── PITCH SHIFT ────────────────────────────────
+async function pitchShift(buf, semitones){
+  if(!semitones || semitones === 0) return buf;
+  const factor     = Math.pow(2, semitones / 12);
+  const safeFactor = Math.max(0.25, Math.min(4.0, factor));
+  const safeInv    = Math.max(0.25, Math.min(4.0, 1 / safeFactor));
+  const stretchLen = Math.max(1, Math.round(buf.length * safeFactor));
+  const ctxA = new OfflineAudioContext(buf.numberOfChannels, stretchLen, buf.sampleRate);
+  const srcA = ctxA.createBufferSource();
+  srcA.buffer = buf; srcA.playbackRate.value = safeInv;
+  srcA.connect(ctxA.destination); srcA.start(0);
+  const stretched = await ctxA.startRendering();
+  const origLen = Math.max(1, buf.length);
+  const ctxB = new OfflineAudioContext(buf.numberOfChannels, origLen, buf.sampleRate);
+  const srcB = ctxB.createBufferSource();
+  srcB.buffer = stretched; srcB.playbackRate.value = safeFactor;
+  srcB.connect(ctxB.destination); srcB.start(0);
+  return ctxB.startRendering();
+}
+
+// ── SPEED CHANGE ───────────────────────────────
+async function changeSpeed(buf, rate){
+  const safeRate = Math.max(0.25, Math.min(4.0, rate));
+  const newLen   = Math.max(1, Math.ceil(buf.length / safeRate));
+  const ctx = new OfflineAudioContext(buf.numberOfChannels, newLen, buf.sampleRate);
+  const src = ctx.createBufferSource();
+  src.buffer = buf; src.playbackRate.value = safeRate;
+  src.connect(ctx.destination); src.start(0);
+  return ctx.startRendering();
+}
+
+// ── NOISE INJECT ───────────────────────────────
+function addNoise(buf, lvl){
+  const ch  = buf.numberOfChannels;
+  const len = buf.length;
+  const out = new AudioBuffer({numberOfChannels:ch, length:len, sampleRate:buf.sampleRate});
+  for(let c = 0; c < ch; c++){
+    const inp  = buf.getChannelData(c);
+    const outp = out.getChannelData(c);
+    for(let i = 0; i < len; i++) outp[i] = Math.max(-1, Math.min(1, inp[i] + (Math.random()*2-1)*lvl));
+  }
+  return out;
+}
+
+// ── REVERB INJECT ──────────────────────────────
+function createImpulseResponse(sampleRate, numCh, durationSec, decay){
+  const len = Math.max(1, Math.ceil(sampleRate * durationSec));
+  const buf = new AudioBuffer({numberOfChannels:numCh, length:len, sampleRate});
+  for(let c = 0; c < numCh; c++){
+    const ch = buf.getChannelData(c);
+    for(let i = 0; i < len; i++) ch[i] = (Math.random()*2-1) * Math.pow(1 - i/len, decay);
+  }
+  return buf;
+}
+
+async function addReverb(buf, mix=0.1, decaySec=1.5){
+  const sr      = buf.sampleRate;
+  const ch      = buf.numberOfChannels;
+  const len     = buf.length;
+  const safeDec = Math.min(decaySec, 4);
+  const tailLen = Math.ceil(sr * safeDec);
+  const ctx = new OfflineAudioContext(ch, len + tailLen, sr);
+  const src = ctx.createBufferSource(); src.buffer = buf;
+  const conv = ctx.createConvolver(); conv.buffer = createImpulseResponse(sr, ch, safeDec, 2.5);
+  const dryGain = ctx.createGain(); dryGain.gain.value = 1 - mix;
+  const wetGain = ctx.createGain(); wetGain.gain.value = mix;
+  src.connect(dryGain); src.connect(conv); conv.connect(wetGain);
+  dryGain.connect(ctx.destination); wetGain.connect(ctx.destination);
+  src.start(0);
+  const full = await ctx.startRendering();
+  const trim = new OfflineAudioContext(ch, len, sr);
+  const tSrc = trim.createBufferSource(); tSrc.buffer = full;
+  tSrc.connect(trim.destination); tSrc.start(0);
+  return trim.startRendering();
+}
+
+// ── EQ SHIFT ───────────────────────────────────
+async function applyEQ(buf, bandStr, gainDb){
+  const parts = bandStr.split('|');
+  if(parts.length < 2){ console.warn('Invalid EQ band:', bandStr); return buf; }
+  const filterType = parts[0];
+  const freq       = parseFloat(parts[1]);
+  if(!freq || isNaN(freq) || freq <= 0){ return buf; }
+  const ctx = new OfflineAudioContext(buf.numberOfChannels, buf.length, buf.sampleRate);
+  const src = ctx.createBufferSource(); src.buffer = buf;
+  const filter = ctx.createBiquadFilter();
+  filter.type = filterType; filter.frequency.value = freq; filter.gain.value = gainDb;
+  if(filterType === 'peaking') filter.Q.value = 1.0;
+  src.connect(filter); filter.connect(ctx.destination); src.start(0);
+  return ctx.startRendering();
+}
+
+// ── STEREO IMAGER ──────────────────────────────
+function applyStereo(buf, width){
+  const ch  = buf.numberOfChannels;
+  const len = buf.length;
+  const sr  = buf.sampleRate;
+  if(ch < 2){
+    const out    = new AudioBuffer({numberOfChannels:2, length:len, sampleRate:sr});
+    const mono   = buf.getChannelData(0);
+    const L      = out.getChannelData(0);
+    const R      = out.getChannelData(1);
+    const delay  = Math.round(sr * 0.0018);
+    for(let i = 0; i < len; i++){
+      L[i] = mono[i];
+      R[i] = (i >= delay) ? mono[i - delay] * 0.90 : 0;
+    }
+    return out;
+  }
+  const out  = new AudioBuffer({numberOfChannels:ch, length:len, sampleRate:sr});
+  const lIn  = buf.getChannelData(0);
+  const rIn  = buf.getChannelData(1);
+  const lOut = out.getChannelData(0);
+  const rOut = out.getChannelData(1);
+  for(let i = 0; i < len; i++){
+    const mid  = (lIn[i] + rIn[i]) * 0.5;
+    const side = (lIn[i] - rIn[i]) * 0.5 * width;
+    lOut[i] = Math.max(-1, Math.min(1, mid + side));
+    rOut[i] = Math.max(-1, Math.min(1, mid - side));
+  }
+  for(let c = 2; c < ch; c++){
+    out.getChannelData(c).set(buf.getChannelData(c));
+  }
+  return out;
+}
+
+// ── PHASE FLIP (NEW) ────────────────────────────
+function phaseFlip(buf, channel='both'){
+  const ch  = buf.numberOfChannels;
+  const len = buf.length;
+  const out = new AudioBuffer({numberOfChannels:ch, length:len, sampleRate:buf.sampleRate});
+  for(let c = 0; c < ch; c++){
+    const inp  = buf.getChannelData(c);
+    const outp = out.getChannelData(c);
+    const flip = channel==='both' || (channel==='left' && c===0) || (channel==='right' && c===1);
+    if(flip){
+      for(let i = 0; i < len; i++) outp[i] = -inp[i];
+    } else {
+      outp.set(inp);
+    }
+  }
+  return out;
+}
+
+// ── WAV ENCODE (OPTIMIZED) ─────────────────────
+function bufToWav(buf){
+  const ch  = buf.numberOfChannels;
+  const sr  = buf.sampleRate;
+  const len = buf.length;
+  const bps = 2, ba = ch*bps, br = sr*ba, ds = len*ch*bps;
+  const ab  = new ArrayBuffer(44 + ds);
+  const dv  = new DataView(ab);
+  const ws  = (o,s)=>{ for(let i=0;i<s.length;i++) dv.setUint8(o+i, s.charCodeAt(i)); };
+  ws(0,'RIFF'); dv.setUint32(4, 36+ds, true); ws(8,'WAVE'); ws(12,'fmt ');
+  dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, ch, true);
+  dv.setUint32(24, sr, true); dv.setUint32(28, br, true); dv.setUint16(32, ba, true);
+  dv.setUint16(34, 16, true); ws(36,'data'); dv.setUint32(40, ds, true);
+
+  // Optimized sample write using Int16Array typed view
+  const i16 = new Int16Array(ab, 44);
+  if(ch === 1){
+    const d = buf.getChannelData(0);
+    for(let i = 0; i < len; i++){
+      const s = d[i];
+      i16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+    }
+  } else if(ch === 2){
+    const L = buf.getChannelData(0);
+    const R = buf.getChannelData(1);
+    for(let i = 0; i < len; i++){
+      const l = L[i], r = R[i];
+      i16[i*2]   = l < 0 ? l * 0x8000 : l * 0x7FFF;
+      i16[i*2+1] = r < 0 ? r * 0x8000 : r * 0x7FFF;
+    }
+  } else {
+    for(let i = 0; i < len; i++){
+      for(let c = 0; c < ch; c++){
+        const s = buf.getChannelData(c)[i];
+        i16[i*ch+c] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+      }
+    }
+  }
+  return ab;
+}
+
+// ── MP3 ENCODE ─────────────────────────────────
+function float32ToInt16(f32){
+  const i16 = new Int16Array(f32.length);
+  for(let i = 0; i < f32.length; i++){
+    const s = Math.max(-1, Math.min(1, f32[i]));
+    i16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+  }
+  return i16;
+}
+
+async function bufToMp3(buf, bitrate=192){
+  const ch  = Math.min(buf.numberOfChannels, 2);
+  const sr  = buf.sampleRate;
+  const enc = new lamejs.Mp3Encoder(ch, sr, bitrate);
+  const left  = float32ToInt16(buf.getChannelData(0));
+  const right = ch > 1 ? float32ToInt16(buf.getChannelData(1)) : left;
+  const blockSize = 1152;
+  const parts = [];
+  for(let i = 0; i < left.length; i += blockSize){
+    const L       = left.subarray(i, i + blockSize);
+    const R       = right.subarray(i, i + blockSize);
+    const encoded = ch > 1 ? enc.encodeBuffer(L, R) : enc.encodeBuffer(L);
+    if(encoded.length > 0) parts.push(new Uint8Array(encoded));
+  }
+  const flushed = enc.flush();
+  if(flushed.length > 0) parts.push(new Uint8Array(flushed));
+  return new Blob(parts, {type:'audio/mpeg'});
+}
+
+// ── RESULTS ────────────────────────────────────
+function renderStats(){
+  if(!results.length) return;
+  const totalIn  = fileQueue.reduce((s,f)=>s+f.file.size, 0);
+  const totalOut = results.reduce((s,r)=>s+(r.resultBlob?.size||0), 0);
+  const totalDur = results.reduce((s,r)=>s+(r.duration||0), 0);
+  const row = document.getElementById('statsRow');
+  row.innerHTML = `
+    <div class="stat-chip">📁 Input: <strong>${fmtSize(totalIn)}</strong></div>
+    <div class="stat-chip">📤 Output: <strong>${fmtSize(totalOut)}</strong></div>
+    ${totalDur>0?`<div class="stat-chip">⏱ Durasi: <strong>${fmtDuration(totalDur)}</strong></div>`:''}
+    <div class="stat-chip">✅ Berhasil: <strong>${results.length}</strong></div>
+  `;
+}
+
+function clearResults(){
+  results.forEach(r=>{ if(r.resultUrl) URL.revokeObjectURL(r.resultUrl); });
+  results = [];
+  document.getElementById('resultsSection').style.display = 'none';
+  document.getElementById('resultList').innerHTML = '';
+  document.getElementById('procTimeDisplay').textContent = '';
+  document.getElementById('statsRow').innerHTML = '';
+  stopPreview();
+}
+
+function togglePreview(id, url, btn){
+  if(previewPlayingId === id){ stopPreview(); return; }
+  stopPreview();
+  previewAudioEl = new Audio(url);
+  previewAudioEl.play().catch(e=>console.warn('Preview error', e));
+  previewPlayingId = id;
+  btn.textContent = '⏸'; btn.classList.add('playing');
+  previewAudioEl.onended = ()=>stopPreview();
+  previewAudioEl.onerror = ()=>stopPreview();
+}
+
+function stopPreview(){
+  if(previewAudioEl){ previewAudioEl.pause(); previewAudioEl.src=''; previewAudioEl=null; }
+  if(previewPlayingId !== null){
+    const btn = document.getElementById('prev-'+previewPlayingId);
+    if(btn){ btn.textContent='▶'; btn.classList.remove('playing'); }
+  }
+  previewPlayingId = null;
+}
+
+async function downloadAll(){
+  if(!results.length) return;
+  if(typeof JSZip === 'undefined'){ alert('JSZip belum load. Coba refresh halaman.'); return; }
+  const btn = document.getElementById('dlAllBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Membuat ZIP...';
+  showStatus('Membuat ZIP...', 'info', 50);
+  try{
+    const zip = new JSZip();
+    for(const r of results){
+      if(!r.resultBlob) continue;
+      const ab = await r.resultBlob.arrayBuffer();
+      zip.file(r.outName, ab);
+    }
+    const compression = zipMode === 'store' ? 'STORE' : 'DEFLATE';
+    const blob = await zip.generateAsync({type:'blob', compression});
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a'); a.href=url; a.download='iruu_bypass_pack.zip'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url), 5000);
+    showStatus(`ZIP berhasil dibuat! (${fmtSize(blob.size)})`, 'ok', 100);
+  } catch(e){
+    showStatus('Gagal membuat ZIP: '+e.message, 'err', 0);
+    console.error(e);
+  }
+  btn.disabled = false;
+  btn.textContent = '⬇️ Download Semua (ZIP)';
+}
+
+// ── CANCEL ─────────────────────────────────────
+function cancelAll(){
+  if(!processing) return;
+  cancelRequested = true;
+  const btn = document.getElementById('cancelBtn');
+  btn.disabled = true; btn.textContent = 'Membatalkan...';
+}
+
+// ── HELPERS ────────────────────────────────────
+function buildOutName(orig, ext){
+  const base     = orig.replace(/\.[^.]+$/,'');
+  const prefix   = document.getElementById('addPrefix').checked ? 'bypassed_' : '';
+  const keepOrig = document.getElementById('keepName').checked;
+  return prefix + (keepOrig ? base : 'audio_'+Date.now()) + (ext||'.wav');
+}
+
+function setQueueStatus(id, type, label){
+  const el = document.getElementById('qs-'+id);
+  if(el){ el.textContent = label; el.style.color = statusColor(type); }
+}
+
+function setQueueProg(id, pct){
+  const el = document.getElementById('qp-'+id);
+  if(el) el.style.width = pct+'%';
+}
+
+function showStatus(msg, type, pct){
+  const bar = document.getElementById('statusBar');
+  bar.classList.add('show');
+  document.getElementById('sbText').textContent = msg;
+  document.getElementById('sbDot').className    = 'sb-dot '+type;
+  document.getElementById('sbFill').style.width = Math.max(0, Math.min(100, Math.round(pct)))+'%';
+  document.getElementById('sbPct').textContent  = pct > 0 && pct < 100 ? Math.round(pct)+'%' : '';
+}
+
+function statusColor(s){
+  if(s==='done')    return 'var(--green)';
+  if(s==='err')     return 'var(--red)';
+  if(s==='loading') return 'var(--accent2)';
+  return 'var(--muted)';
+}
+function statusLabel(s){
+  if(s==='done')    return '✅';
+  if(s==='err')     return '❌';
+  if(s==='loading') return '⏳';
+  return '—';
+}
+function audioIcon(name){
+  if(/\.(mp4|webm|mov|avi)/i.test(name)) return '🎬';
+  if(/\.(mp3)/i.test(name))              return '🎵';
+  if(/\.(wav)/i.test(name))              return '🔊';
+  if(/\.(flac|aiff?)/i.test(name))       return '🎶';
+  if(/\.(ogg|opus)/i.test(name))         return '🎙️';
+  if(/\.(m4a|aac)/i.test(name))          return '🎧';
+  return '🎵';
+}
+function techLabel(t){
+  const map = {
+    pitch:'Pitch Shift', speed:'Speed Tweak', noise:'Noise Inject',
+    reverb:'Reverb Inject', eq:'EQ Shift', stereo:'Stereo Imager',
+    phase:'Phase Flip', combo:'Combo Max'
+  };
+  return map[t] || t || 'Bypass';
+}
+function fmtSize(b){
+  if(b > 1073741824) return (b/1073741824).toFixed(2)+' GB';
+  if(b > 1048576)    return (b/1048576).toFixed(1)+' MB';
+  return (b/1024).toFixed(0)+' KB';
+}
+function fmtDuration(s){
+  if(!s||isNaN(s)||!isFinite(s)) return '';
+  const m = Math.floor(s/60), sec = Math.floor(s%60);
+  return m+':'+String(sec).padStart(2,'0');
+}
+function esc(s){
+  const d = document.createElement('div'); d.textContent = s; return d.innerHTML;
+}
+</script>
+</body>
+</html>
